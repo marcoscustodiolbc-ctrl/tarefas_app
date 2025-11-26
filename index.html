@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarefas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f0fdf4;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 672px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        .header {
+            margin-bottom: 2rem;
+        }
+
+        .title {
+            font-size: 1.875rem;
+            font-weight: 300;
+            color: #14532d;
+            margin-bottom: 0.25rem;
+        }
+
+        .subtitle {
+            font-size: 0.875rem;
+            color: #16a34a;
+        }
+
+        .input-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            background-color: white;
+            border: 1px solid #bbf7d0;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            color: #1f2937;
+            outline: none;
+        }
+
+        .input:focus {
+            border-color: #22c55e;
+        }
+
+        .input::placeholder {
+            color: #9ca3af;
+        }
+
+        .add-button {
+            background-color: #16a34a;
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .add-button:hover {
+            background-color: #15803d;
+        }
+
+        .priority-container {
+            display: flex;
+            gap: 0.75rem;
+            padding-left: 0.25rem;
+        }
+
+        .priority-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+
+        .priority-radio {
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 50%;
+            border: 2px solid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .priority-radio.urgent {
+            border-color: #fca5a5;
+        }
+
+        .priority-radio.urgent.active {
+            border-color: #ef4444;
+            background-color: #ef4444;
+        }
+
+        .priority-radio.important {
+            border-color: #fcd34d;
+        }
+
+        .priority-radio.important.active {
+            border-color: #eab308;
+            background-color: #eab308;
+        }
+
+        .priority-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            background-color: white;
+            border-radius: 50%;
+        }
+
+        .priority-label {
+            font-size: 0.875rem;
+        }
+
+        .priority-label.urgent {
+            color: #dc2626;
+        }
+
+        .priority-label.important {
+            color: #a16207;
+        }
+
+        .tasks-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 0;
+            color: #9ca3af;
+        }
+
+        .task-card {
+            border: 1px solid;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .task-card.normal {
+            background-color: white;
+            border-color: #dcfce7;
+        }
+
+        .task-card.normal:hover {
+            border-color: #bbf7d0;
+        }
+
+        .task-card.urgent {
+            background-color: #fef2f2;
+            border-color: #fecaca;
+        }
+
+        .task-card.urgent:hover {
+            border-color: #fca5a5;
+        }
+
+        .task-card.important {
+            background-color: #fefce8;
+            border-color: #fef08a;
+        }
+
+        .task-card.important:hover {
+            border-color: #fde047;
+        }
+
+        .task-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .check-button {
+            flex-shrink: 0;
+            background: none;
+            border: none;
+            color: #16a34a;
+            cursor: pointer;
+            padding: 0;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .check-button:hover {
+            color: #15803d;
+        }
+
+        .task-text {
+            flex: 1;
+            color: #374151;
+        }
+
+        .task-text.completed {
+            text-decoration: line-through;
+            color: #9ca3af;
+        }
+
+        .delete-button {
+            flex-shrink: 0;
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .delete-button:hover {
+            color: #ef4444;
+        }
+
+        .footer {
+            margin-top: 3rem;
+            text-align: center;
+        }
+
+        .footer-text {
+            font-size: 0.875rem;
+            color: #9ca3af;
+        }
+
+        .loading {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #16a34a;
+        }
+
+        svg {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCczxqAgm-ru5_4g48oKb7zxGtNqu1FwqU",
+            authDomain: "tarefas-80eda.firebaseapp.com",
+            projectId: "tarefas-80eda",
+            storageBucket: "tarefas-80eda.firebasestorage.app",
+            messagingSenderId: "241712675636",
+            appId: "1:241712675636:web:9e0c5c48f98c2ebfcc0361"
+        };
+
+        const PlusIcon = () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        );
+
+        const Trash2Icon = () => (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+        );
+
+        const CircleIcon = () => (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"></circle>
+            </svg>
+        );
+
+        const CheckCircle2Icon = () => (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+        );
+
+        function TodoApp() {
+            const [tasks, setTasks] = useState([]);
+            const [inputValue, setInputValue] = useState('');
+            const [priority, setPriority] = useState('normal');
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                loadTasks();
+            }, []);
+
+            const loadTasks = async () => {
+                try {
+                    const response = await fetch(
+                        `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/tasks`,
+                        {
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        }
+                    );
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.documents) {
+                            const loadedTasks = data.documents.map(doc => {
+                                const fields = doc.fields;
+                                return {
+                                    id: parseInt(fields.id?.integerValue || fields.id?.stringValue || Date.now()),
+                                    text: fields.text?.stringValue || '',
+                                    completed: fields.completed?.booleanValue || false,
+                                    priority: fields.priority?.stringValue || 'normal',
+                                    createdAt: fields.createdAt?.stringValue || new Date().toISOString(),
+                                    firestoreId: doc.name.split('/').pop()
+                                };
+                            });
+                            setTasks(loadedTasks.sort((a, b) => 
+                                new Date(b.createdAt) - new Date(a.createdAt)
+                            ));
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erro ao carregar tarefas:', error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const saveTaskToFirebase = async (task) => {
+                try {
+                    const response = await fetch(
+                        `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/tasks`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                fields: {
+                                    id: { integerValue: task.id.toString() },
+                                    text: { stringValue: task.text },
+                                    completed: { booleanValue: task.completed },
+                                    priority: { stringValue: task.priority },
+                                    createdAt: { stringValue: task.createdAt }
+                                }
+                            })
+                        }
+                    );
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        return data.name.split('/').pop();
+                    }
+                } catch (error) {
+                    console.error('Erro ao salvar tarefa:', error);
+                }
+            };
+
+            const updateTaskInFirebase = async (task) => {
+                if (!task.firestoreId) return;
+
+                try {
+                    await fetch(
+                        `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/tasks/${task.firestoreId}`,
+                        {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                fields: {
+                                    id: { integerValue: task.id.toString() },
+                                    text: { stringValue: task.text },
+                                    completed: { booleanValue: task.completed },
+                                    priority: { stringValue: task.priority },
+                                    createdAt: { stringValue: task.createdAt }
+                                }
+                            })
+                        }
+                    );
+                } catch (error) {
+                    console.error('Erro ao atualizar tarefa:', error);
+                }
+            };
+
+            const deleteTaskFromFirebase = async (firestoreId) => {
+                if (!firestoreId) return;
+
+                try {
+                    await fetch(
+                        `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/tasks/${firestoreId}`,
+                        {
+                            method: 'DELETE'
+                        }
+                    );
+                } catch (error) {
+                    console.error('Erro ao deletar tarefa:', error);
+                }
+            };
+
+            const addTask = async () => {
+                if (inputValue.trim()) {
+                    const newTask = {
+                        id: Date.now(),
+                        text: inputValue,
+                        completed: false,
+                        priority: priority,
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    const taskWithTempId = { ...newTask, firestoreId: null };
+                    setTasks([taskWithTempId, ...tasks]);
+                    setInputValue('');
+                    setPriority('normal');
+                    
+                    const firestoreId = await saveTaskToFirebase(newTask);
+                    if (firestoreId) {
+                        setTasks(prevTasks => 
+                            prevTasks.map(t => t.id === newTask.id ? { ...t, firestoreId } : t)
+                        );
+                    }
+                }
+            };
+
+            const toggleTask = async (id) => {
+                const updatedTasks = tasks.map(task =>
+                    task.id === id ? { ...task, completed: !task.completed } : task
+                );
+                setTasks(updatedTasks);
+                
+                const task = updatedTasks.find(t => t.id === id);
+                if (task) {
+                    await updateTaskInFirebase(task);
+                }
+            };
+
+            const deleteTask = async (id) => {
+                const task = tasks.find(t => t.id === id);
+                setTasks(tasks.filter(task => task.id !== id));
+                
+                if (task && task.firestoreId) {
+                    await deleteTaskFromFirebase(task.firestoreId);
+                }
+            };
+
+            const handleKeyPress = (e) => {
+                if (e.key === 'Enter') {
+                    addTask();
+                }
+            };
+
+            const completedCount = tasks.filter(t => t.completed).length;
+            const totalCount = tasks.length;
+
+            if (loading) {
+                return (
+                    <div className="loading">
+                        <div>Carregando...</div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1 className="title">Tarefas</h1>
+                        {totalCount > 0 && (
+                            <p className="subtitle">
+                                {completedCount} de {totalCount} concluídas
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="input-container">
+                        <div className="input-wrapper">
+                            <input
+                                type="text"
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                                placeholder="Nova tarefa..."
+                                className="input"
+                            />
+                            <button onClick={addTask} className="add-button">
+                                <PlusIcon />
+                            </button>
+                        </div>
+                        
+                        <div className="priority-container">
+                            <button
+                                onClick={() => setPriority('urgent')}
+                                className="priority-button"
+                            >
+                                <div className={`priority-radio urgent ${priority === 'urgent' ? 'active' : ''}`}>
+                                    {priority === 'urgent' && <div className="priority-dot"></div>}
+                                </div>
+                                <span className="priority-label urgent">Urgente</span>
+                            </button>
+                            
+                            <button
+                                onClick={() => setPriority('important')}
+                                className="priority-button"
+                            >
+                                <div className={`priority-radio important ${priority === 'important' ? 'active' : ''}`}>
+                                    {priority === 'important' && <div className="priority-dot"></div>}
+                                </div>
+                                <span className="priority-label important">Importante</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="tasks-container">
+                        {tasks.length === 0 ? (
+                            <div className="empty-state">
+                                <p>Nenhuma tarefa</p>
+                            </div>
+                        ) : (
+                            tasks.map(task => (
+                                <div key={task.id} className={`task-card ${task.priority}`}>
+                                    <div className="task-content">
+                                        <button onClick={() => toggleTask(task.id)} className="check-button">
+                                            {task.completed ? <CheckCircle2Icon /> : <CircleIcon />}
+                                        </button>
+                                        
+                                        <p className={`task-text ${task.completed ? 'completed' : ''}`}>
+                                            {task.text}
+                                        </p>
+                                        
+                                        <button onClick={() => deleteTask(task.id)} className="delete-button">
+                                            <Trash2Icon />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+
+                    <div className="footer">
+                        <p className="footer-text">
+                            Developed by @marcosacustodio
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TodoApp />);
+    </script>
+</body>
+</html>
