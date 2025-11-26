@@ -216,21 +216,21 @@
         }
 
         .task-card.urgent {
-            background-color: #fef2f2;
-            border-color: #fecaca;
-        }
-
-        .task-card.urgent:hover {
+            background-color: #fee2e2;
             border-color: #fca5a5;
         }
 
+        .task-card.urgent:hover {
+            border-color: #f87171;
+        }
+
         .task-card.important {
-            background-color: #fefce8;
-            border-color: #fef08a;
+            background-color: #fef9c3;
+            border-color: #fde047;
         }
 
         .task-card.important:hover {
-            border-color: #fde047;
+            border-color: #facc15;
         }
 
         .task-card.approved {
@@ -657,7 +657,7 @@
                                 type="text"
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
-                                onKeyPress={handleKeyPress}
+                                onKeyDown={handleKeyPress}
                                 placeholder="Nova tarefa..."
                                 className="input"
                             />
