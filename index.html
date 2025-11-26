@@ -39,6 +39,33 @@
             color: #16a34a;
         }
 
+        .filter-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            background-color: white;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .filter-button:hover {
+            border-color: #16a34a;
+        }
+
+        .filter-button.active {
+            background-color: #16a34a;
+            color: white;
+            border-color: #16a34a;
+        }
+
         .input-container {
             margin-bottom: 1.5rem;
         }
@@ -86,6 +113,7 @@
             display: flex;
             gap: 0.75rem;
             padding-left: 0.25rem;
+            flex-wrap: wrap;
         }
 
         .priority-button {
@@ -126,6 +154,15 @@
             background-color: #eab308;
         }
 
+        .priority-radio.approved {
+            border-color: #86efac;
+        }
+
+        .priority-radio.approved.active {
+            border-color: #16a34a;
+            background-color: #16a34a;
+        }
+
         .priority-dot {
             width: 0.5rem;
             height: 0.5rem;
@@ -145,6 +182,10 @@
             color: #a16207;
         }
 
+        .priority-label.approved {
+            color: #16a34a;
+        }
+
         .tasks-container {
             display: flex;
             flex-direction: column;
@@ -162,6 +203,7 @@
             border-radius: 0.5rem;
             padding: 1rem;
             transition: border-color 0.2s;
+            position: relative;
         }
 
         .task-card.normal {
@@ -191,6 +233,15 @@
             border-color: #fde047;
         }
 
+        .task-card.approved {
+            background-color: #16a34a;
+            border-color: #15803d;
+        }
+
+        .task-card.approved:hover {
+            border-color: #166534;
+        }
+
         .task-content {
             display: flex;
             align-items: center;
@@ -213,6 +264,10 @@
             color: #15803d;
         }
 
+        .task-card.approved .check-button {
+            color: white;
+        }
+
         .task-text {
             flex: 1;
             color: #374151;
@@ -221,6 +276,45 @@
         .task-text.completed {
             text-decoration: line-through;
             color: #9ca3af;
+        }
+
+        .task-card.approved .task-text {
+            color: white;
+        }
+
+        .task-card.approved .task-text.completed {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 0.25rem;
+            align-items: center;
+        }
+
+        .move-button {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .move-button:hover {
+            color: #16a34a;
+        }
+
+        .task-card.approved .move-button {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .task-card.approved .move-button:hover {
+            color: white;
         }
 
         .delete-button {
@@ -237,6 +331,14 @@
 
         .delete-button:hover {
             color: #ef4444;
+        }
+
+        .task-card.approved .delete-button {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .task-card.approved .delete-button:hover {
+            color: white;
         }
 
         .footer {
@@ -313,6 +415,7 @@
             const [inputValue, setInputValue] = useState('');
             const [priority, setPriority] = useState('normal');
             const [loading, setLoading] = useState(true);
+            const [filter, setFilter] = useState('all');
 
             useEffect(() => {
                 loadTasks();
@@ -340,12 +443,11 @@
                                     completed: fields.completed?.booleanValue || false,
                                     priority: fields.priority?.stringValue || 'normal',
                                     createdAt: fields.createdAt?.stringValue || new Date().toISOString(),
+                                    order: fields.order?.integerValue ? parseInt(fields.order.integerValue) : 0,
                                     firestoreId: doc.name.split('/').pop()
                                 };
                             });
-                            setTasks(loadedTasks.sort((a, b) => 
-                                new Date(b.createdAt) - new Date(a.createdAt)
-                            ));
+                            setTasks(loadedTasks.sort((a, b) => b.order - a.order || new Date(b.createdAt) - new Date(a.createdAt)));
                         }
                     }
                 } catch (error) {
@@ -370,7 +472,8 @@
                                     text: { stringValue: task.text },
                                     completed: { booleanValue: task.completed },
                                     priority: { stringValue: task.priority },
-                                    createdAt: { stringValue: task.createdAt }
+                                    createdAt: { stringValue: task.createdAt },
+                                    order: { integerValue: (task.order || 0).toString() }
                                 }
                             })
                         }
@@ -402,7 +505,8 @@
                                     text: { stringValue: task.text },
                                     completed: { booleanValue: task.completed },
                                     priority: { stringValue: task.priority },
-                                    createdAt: { stringValue: task.createdAt }
+                                    createdAt: { stringValue: task.createdAt },
+                                    order: { integerValue: (task.order || 0).toString() }
                                 }
                             })
                         }
@@ -429,12 +533,14 @@
 
             const addTask = async () => {
                 if (inputValue.trim()) {
+                    const maxOrder = tasks.length > 0 ? Math.max(...tasks.map(t => t.order || 0)) : 0;
                     const newTask = {
                         id: Date.now(),
                         text: inputValue,
                         completed: false,
                         priority: priority,
-                        createdAt: new Date().toISOString()
+                        createdAt: new Date().toISOString(),
+                        order: maxOrder + 1
                     };
                     
                     const taskWithTempId = { ...newTask, firestoreId: null };
@@ -463,6 +569,19 @@
                 }
             };
 
+            const moveToTop = async (id) => {
+                const maxOrder = Math.max(...tasks.map(t => t.order || 0));
+                const updatedTasks = tasks.map(task =>
+                    task.id === id ? { ...task, order: maxOrder + 1 } : task
+                );
+                setTasks(updatedTasks.sort((a, b) => b.order - a.order));
+                
+                const task = updatedTasks.find(t => t.id === id);
+                if (task) {
+                    await updateTaskInFirebase(task);
+                }
+            };
+
             const deleteTask = async (id) => {
                 const task = tasks.find(t => t.id === id);
                 setTasks(tasks.filter(task => task.id !== id));
@@ -477,6 +596,11 @@
                     addTask();
                 }
             };
+
+            const filteredTasks = tasks.filter(task => {
+                if (filter === 'all') return true;
+                return task.priority === filter;
+            });
 
             const completedCount = tasks.filter(t => t.completed).length;
             const totalCount = tasks.length;
@@ -498,6 +622,33 @@
                                 {completedCount} de {totalCount} concluídas
                             </p>
                         )}
+                    </div>
+
+                    <div className="filter-container">
+                        <button 
+                            className={`filter-button ${filter === 'all' ? 'active' : ''}`}
+                            onClick={() => setFilter('all')}
+                        >
+                            Todas
+                        </button>
+                        <button 
+                            className={`filter-button ${filter === 'urgent' ? 'active' : ''}`}
+                            onClick={() => setFilter('urgent')}
+                        >
+                            Urgentes
+                        </button>
+                        <button 
+                            className={`filter-button ${filter === 'important' ? 'active' : ''}`}
+                            onClick={() => setFilter('important')}
+                        >
+                            Importantes
+                        </button>
+                        <button 
+                            className={`filter-button ${filter === 'approved' ? 'active' : ''}`}
+                            onClick={() => setFilter('approved')}
+                        >
+                            Aprovadas
+                        </button>
                     </div>
 
                     <div className="input-container">
@@ -535,16 +686,26 @@
                                 </div>
                                 <span className="priority-label important">Importante</span>
                             </button>
+
+                            <button
+                                onClick={() => setPriority('approved')}
+                                className="priority-button"
+                            >
+                                <div className={`priority-radio approved ${priority === 'approved' ? 'active' : ''}`}>
+                                    {priority === 'approved' && <div className="priority-dot"></div>}
+                                </div>
+                                <span className="priority-label approved">Aprovada</span>
+                            </button>
                         </div>
                     </div>
 
                     <div className="tasks-container">
-                        {tasks.length === 0 ? (
+                        {filteredTasks.length === 0 ? (
                             <div className="empty-state">
                                 <p>Nenhuma tarefa</p>
                             </div>
                         ) : (
-                            tasks.map(task => (
+                            filteredTasks.map(task => (
                                 <div key={task.id} className={`task-card ${task.priority}`}>
                                     <div className="task-content">
                                         <button onClick={() => toggleTask(task.id)} className="check-button">
@@ -555,9 +716,18 @@
                                             {task.text}
                                         </p>
                                         
-                                        <button onClick={() => deleteTask(task.id)} className="delete-button">
-                                            <Trash2Icon />
-                                        </button>
+                                        <div className="task-actions">
+                                            <button 
+                                                onClick={() => moveToTop(task.id)} 
+                                                className="move-button"
+                                                title="Mover para o topo"
+                                            >
+                                                ↑
+                                            </button>
+                                            <button onClick={() => deleteTask(task.id)} className="delete-button">
+                                                <Trash2Icon />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             ))
