@@ -467,6 +467,20 @@
                 loadTasks();
             }, []);
 
+            useEffect(() => {
+                const handleGlobalKeyPress = (e) => {
+                    if (e.key === 'Enter' && !editingTask) {
+                        e.preventDefault();
+                        if (inputValue.trim()) {
+                            addTask();
+                        }
+                    }
+                };
+
+                window.addEventListener('keydown', handleGlobalKeyPress);
+                return () => window.removeEventListener('keydown', handleGlobalKeyPress);
+            }, [inputValue, priority, tasks, editingTask]);
+
             const loadTasks = async () => {
                 try {
                     const response = await fetch(
